@@ -4,3 +4,7 @@ html, body, #viewDiv {
     height: 100%;
     width: 100%;
 }
+
+.esri-view .esri-view-surface--inset-outline:focus::after {
+    outline: 0 !important;
+}

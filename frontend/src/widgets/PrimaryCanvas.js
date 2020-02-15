@@ -7,7 +7,8 @@ class PrimaryCanvas extends React.Component {
         super(props);
         this.canvasRef = React.createRef();
         this.bg = '#101820';
-        this.treeGreen = '#A0FF40';
+        this.treeGreen = '#80A040';
+        this.newTreeGreen = '#A0FF40';
 
         this.cameraX = 0;
         this.cameraY = 0;
@@ -88,32 +89,50 @@ class PrimaryCanvas extends React.Component {
         let radius = tree.r;
 
         let c = this.context;
-        c.strokeStyle = this.treeGreen;
+        if (tree.new) {
+            c.strokeStyle = this.newTreeGreen;
+        } else {
+            c.strokeStyle = this.treeGreen;
+        }
         c.lineWidth = 2;
-        c.fillStyle = this.treeGreen;
+        c.fillStyle = c.strokeStyle;
 
-        c.beginPath();
-        c.ellipse(
-            this.transformX(x),
-            this.transformY(y),
-            this.transformLength(radius),
-            this.transformLength(radius),
-            0.0,
-            0.0,
-            Math.PI * 2.0,
-        );
-        c.stroke();
-        c.beginPath();
-        c.ellipse(
-            this.transformX(x),
-            this.transformY(y),
-            3.0,
-            3.0,
-            0.0,
-            0.0,
-            Math.PI * 2.0,
-        );
-        c.fill();
+        if (this.transformLength(radius) > 5.0) {
+            c.beginPath();
+            c.ellipse(
+                this.transformX(x),
+                this.transformY(y),
+                this.transformLength(radius),
+                this.transformLength(radius),
+                0.0,
+                0.0,
+                Math.PI * 2.0,
+            );
+            c.stroke();
+            c.beginPath();
+            c.ellipse(
+                this.transformX(x),
+                this.transformY(y),
+                3.0,
+                3.0,
+                0.0,
+                0.0,
+                Math.PI * 2.0,
+            );
+            c.fill();
+        } else {
+            c.beginPath();
+            c.ellipse(
+                this.transformX(x),
+                this.transformY(y),
+                this.transformLength(radius),
+                this.transformLength(radius),
+                0.0,
+                0.0,
+                Math.PI * 2.0,
+            );
+            c.fill();
+        }
     }
 
     drawCanvas() {

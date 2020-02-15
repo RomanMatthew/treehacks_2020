@@ -6,7 +6,6 @@ class PrimaryCanvas extends React.Component {
     constructor(props) {
         super(props);
         this.canvasRef = React.createRef();
-        this.bg = '#101820';
         this.treeGreen = '#80A040';
         this.newTreeGreen = '#A0FF40';
 
@@ -56,6 +55,7 @@ class PrimaryCanvas extends React.Component {
         canvas.addEventListener('mousedown', this.clickHandler);
         canvas.addEventListener('mousemove', this.dragHandler);
         canvas.addEventListener('mouseup', this.mouseUpHandler);
+        canvas.addEventListener('mouseleave', this.mouseUpHandler);
         canvas.addEventListener('wheel', this.wheelHandler);
     }
 
@@ -79,8 +79,7 @@ class PrimaryCanvas extends React.Component {
 
     clearCanvas() {
         let c = this.context;
-        c.fillStyle = this.bg;
-        c.fillRect(0, 0, 9000, 9000);
+        c.clearRect(0, 0, c.canvas.width, c.canvas.height);
     }
 
     drawTree(tree) {

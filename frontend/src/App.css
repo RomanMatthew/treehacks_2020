@@ -5,4 +5,7 @@
   top: 0;
   bottom: 0;
   overflow: hidden;
+
+  display: grid;
+  grid-template-columns: 12em 1fr;
 }

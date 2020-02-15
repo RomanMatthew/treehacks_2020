@@ -1,6 +1,11 @@
 :root {
   --bg: #202830;
   --border: #012;
+
+  --dark-button-border: #345;
+  --light-button-border: rgb(167, 184, 201);
+  --dark-button-background: rgb(37, 45, 53);
+  --light-button-background: rgb(100, 112, 124);
 }
 
 body {

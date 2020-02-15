@@ -1,0 +1,39 @@
+.aspectRatioParent {
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    padding-top: 100%; /* This makes it into a square because CSS is weird. */
+    position: relative;
+
+    cursor: pointer;
+    background: var(--dark-button-background);
+    border: 1px solid var(--dark-button-border);
+}
+
+.aspectRatioChild {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.icon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+
+    opacity: 0.6;
+}
+
+.aspectRatioParent:hover {
+    background: var(--light-button-background);
+    border: 1px solid var(--light-button-border);
+}
+
+.aspectRatioParent:hover icon {
+    opacity: 1.0;
+}

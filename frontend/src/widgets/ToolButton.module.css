@@ -26,14 +26,23 @@
     bottom: 0;
     margin: auto;
 
-    opacity: 0.6;
+    opacity: 0.5;
 }
 
-.aspectRatioParent:hover {
+.aspectRatioParent:hover, .aspectRatioParent.active {
     background: var(--light-button-background);
     border: 1px solid var(--light-button-border);
 }
 
-.aspectRatioParent:hover icon {
+.aspectRatioParent:hover .icon, .aspectRatioParent.active .icon {
     opacity: 1.0;
+}
+
+.aspectRatioParent:active {
+    background: var(--dark-button-background);
+    border: 1px solid var(--dark-button-border);
+}
+
+.aspectRatioParent:active .icon {
+    opacity: 0.5;
 }

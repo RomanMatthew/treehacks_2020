@@ -4,8 +4,12 @@ import Icon from '@material-ui/core/Icon/Icon.js';
 
 class Toolbox extends React.Component {
     render() {
+        let rootClasses = styles.aspectRatioParent;
+        if (this.props.active) {
+            rootClasses += ' ' + styles.active;
+        }
         return (
-            <div className={styles.aspectRatioParent}>
+            <div className={rootClasses} onClick={() => this.props.onClick()}>
                 <div className={styles.aspectRatioChild}>
                     <Icon className={styles.icon}>{this.props.iconName}</Icon>
                 </div>

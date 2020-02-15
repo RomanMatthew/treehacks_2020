@@ -33,7 +33,7 @@ class App extends React.Component {
           toolset={this.state.toolset} 
           onToolsetChange={this.handleToolsetChange}
         />
-        <PrimaryCanvas />
+        <PrimaryCanvas toolset={this.state.toolset} />
       </div>
     );
   }

@@ -21,7 +21,6 @@ class PrimaryCanvas extends React.Component {
         let canvas = this.canvasRef.current;
         canvas.width = canvas.clientWidth;
         canvas.height = canvas.clientHeight;
-        this.context = canvas.getContext('2d');
         this.drawCanvas();
 
         this.resizeHandler = () => {
@@ -33,6 +32,7 @@ class PrimaryCanvas extends React.Component {
             this.oldMouseX = event.clientX;
             this.oldMouseY = event.clientY;
             this.mouseDown = true;
+            this.onClick(event.clientX, event.clientY);
         }
         this.dragHandler = event => {
             if (!this.mouseDown) return;
@@ -40,16 +40,13 @@ class PrimaryCanvas extends React.Component {
             let deltaY = event.clientY - this.oldMouseY;
             this.oldMouseX = event.clientX;
             this.oldMouseY = event.clientY;
-            this.cameraX -= deltaX / this.zoomLevel;
-            this.cameraY -= deltaY / this.zoomLevel;
-            this.drawCanvas();
+            this.onDrag(deltaX, deltaY, event.clientX, event.clientY);
         };
         this.mouseUpHandler = () => {
             this.mouseDown = false;
         };
         this.wheelHandler = event => {
-            this.zoomLevel *= Math.pow(2.0, event.deltaY * -0.05);
-            this.drawCanvas();
+            this.onScroll(event.deltaY);
         };
         window.addEventListener('resize', this.resizeHandler);
         canvas.addEventListener('mousedown', this.clickHandler);
@@ -57,6 +54,27 @@ class PrimaryCanvas extends React.Component {
         canvas.addEventListener('mouseup', this.mouseUpHandler);
         canvas.addEventListener('mouseleave', this.mouseUpHandler);
         canvas.addEventListener('wheel', this.wheelHandler);
+    }
+
+    onClick(x, y) {
+        let tool = this.props.toolset.active;
+    }
+
+    onDrag(dx, dy, nx, ny) {
+        let tool = this.props.toolset.active;
+        if (tool === 'pan') {
+            this.cameraX -= dx / this.zoomLevel;
+            this.cameraY -= dy / this.zoomLevel;
+            this.drawCanvas();
+        }
+    }
+
+    onScroll(ds) {
+        let tool = this.props.toolset.active;
+        if (tool === 'pan') {
+            this.zoomLevel *= Math.pow(2.0, ds * -0.05);
+            this.drawCanvas();
+        }
     }
 
     componentWillUnmount() {
@@ -135,6 +153,7 @@ class PrimaryCanvas extends React.Component {
     }
 
     drawCanvas() {
+        this.context = this.canvasRef.current.getContext('2d');
         this.clearCanvas();
 
         for (let tree of worldData.trees) {

@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './PrimaryCanvas.module.css';
+import worldData from '../data/worldData.js';
 
 class PrimaryCanvas extends React.Component {
     constructor(props) {
@@ -81,7 +82,11 @@ class PrimaryCanvas extends React.Component {
         c.fillRect(0, 0, 9000, 9000);
     }
 
-    drawTree(x, y, radius) {
+    drawTree(tree) {
+        let x = tree.x;
+        let y = tree.y;
+        let radius = tree.r;
+
         let c = this.context;
         c.strokeStyle = this.treeGreen;
         c.lineWidth = 2;
@@ -114,8 +119,9 @@ class PrimaryCanvas extends React.Component {
     drawCanvas() {
         this.clearCanvas();
 
-        this.drawTree(20, 20, 15);
-        this.drawTree(150, 100, 90);
+        for (let tree of worldData.trees) {
+            this.drawTree(tree);
+        }
     }
 
     render() {

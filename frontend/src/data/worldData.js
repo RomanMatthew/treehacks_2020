@@ -120,11 +120,13 @@ class WorldData {
                 return [1, 0, 0, -value];
             }
         });
-        this.generateDummyData();
+        window.genDemo = this.generateDummyData.bind(this);
     }
 
     generateNewTrees(layer, x, y, w, h) {
-        for (let i = 0; i < 200; i++) {
+        let treeMultiplier = (4.0 / this.newTreeSize);
+        treeMultiplier *= treeMultiplier;
+        for (let i = 0; i < 500 * treeMultiplier; i++) {
             let px = x + w * Math.random();
             let py = y + h * Math.random();
             let densityMod = this.densityModifier.read(px, py);
@@ -144,8 +146,9 @@ class WorldData {
 
     generateDummyData() {
         let simplex = new SimplexNoise();
-        for (let x = 0; x < 10000; x += 13) {
-            for (let y = 0; y < 10000; y += 13) {
+        this.newTrees.markEverythingDirty();
+        for (let x = 0; x < 50000; x += 13) {
+            for (let y = 0; y < 50000; y += 13) {
                 if (Math.random() > simplex.noise(x / 10000.0, y / 10000.0) * 0.7 + 0.2) continue;
                 let xx = x + Math.random() * 15.0;
                 let yy = y + Math.random() * 15.0;
@@ -159,11 +162,6 @@ class WorldData {
                 this.trees.addPoint(xx, yy, r);
             }
         }
-    }
-
-    drawTiledDataToContext(context, x1, y1, x2, y2)  {
-        this.densityModifier.drawToContext(context, x1, y1, x2, y2);
-        this.newTrees.drawToContext(context, x1, y1, x2, y2);
     }
 }
 

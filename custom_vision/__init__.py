@@ -3,7 +3,7 @@ from azure.cognitiveservices.vision.customvision.prediction import CustomVisionP
 MINIMUM_CONFIDENCE = 0.05 # 5 percent confidence.
 
 # Image dimensions should be in feet.
-def custom_vision_tree(image_url="test_images/test1.jpg", imageWidth=80, imageHeight=50):
+def custom_vision_tree(image_url="test_images/test1.jpg", imageWidth=120, imageHeight=90):
     # Now there is a trained endpoint that can be used to make a prediction
     prediction_key = "76809942034442f885008ba934ce7d46"
     ENDPOINT = "https://westus2.api.cognitive.microsoft.com"

@@ -20,6 +20,7 @@ app.post('/api/image-data', (req, res) => {
     console.log(req.body);
     resolveImageData(req.body);
     resolveImageData = null;
+    res.status(201).send();
 });
 app.get('/api/image-data', async (req, res) => {
     let imageDataPromise = new Promise((resolve, _) => {

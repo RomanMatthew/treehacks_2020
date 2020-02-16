@@ -135,10 +135,13 @@ class PrimaryCanvas extends React.Component {
         let x2 = this.inverseTransformX(this.context.canvas.width);
         let y2 = this.inverseTransformY(this.context.canvas.height);
 
+        let vis = this.props.toolset.options.visibility;
         this.context.globalAlpha = 0.7;
-        worldData.drawTiledDataToContext(this.context, x1, y1, x2, y2);
+        if (vis.drawDensityMod) worldData.densityModifier.drawToContext(this.context, x1, y1, x2, y2);
         this.context.globalAlpha = 1.0;
-        worldData.trees.drawToContext(this.context, x1, y1, x2, y2);
+        if (vis.drawNewTrees) worldData.newTrees.drawToContext(this.context, x1, y1, x2, y2);
+        if (vis.drawTrees) worldData.trees.drawToContext(this.context, x1, y1, x2, y2);
+
         if (!this.refreshTimeout) {
             this.refreshTimeout = setTimeout(() => this.drawCanvas(), OCCASIONAL_REFRESH_INTERVAL);
         }

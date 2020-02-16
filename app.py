@@ -1,50 +1,63 @@
 #!/usr/bin/env python3
 
 import time
-#import tree_classifier as tc
-import asyncio
+import custom_vision as vis
 import pygame
 import pygame.camera
-import websockets
+import requests
+import _thread as thread
+import websocket
 
+SERVER_URL = 'localhost:8000'
 take_picture = False
 
-async def ws_listener():
-    uri = "whoop" #TODO, DEFINE WHAT THE URI IS
-    async with websockets.connect("ws://localhost:8000") as websocket:
-        while True:
-            msg = await websocket.recv()
-            take_picture = True if msg=="take_picture" else False
-            print("Recieved command: ", take_picture)
+def on_ws_message(ws, message):
+    global take_picture
+    if message == 'take_picture':
+        take_picture = True
 
-async def camera_loop():
+def connect_ws():
+    global take_picture
+    print('Connecting web socket...')
+    uri = 'ws://' + SERVER_URL + '/command-stream'
+    client = websocket.WebSocketApp(uri, on_message=on_ws_message)
+    print('Web socket connected!')
+    def run():
+        client.run_forever()
+    thread.start_new_thread(run, ())
+
+def upload_image_data(image_data):
+    uri = 'http://' + SERVER_URL + '/api/image-data'
+    requests.post(uri, json=image_data)
+
+def camera_loop():
+    global take_picture
+
     pygame.camera.init()
 
+    print('Loading webcam...')
     camera = pygame.camera.Camera("/dev/video2", (640, 480))
     # Allow Webcam to warm up
-    time.sleep(2.0)
     camera.start()
 
-    # loop detection
-    # GET INPUT FROM THE USER HAHA
+    print('Webcam loaded!')
     while True:
         frame = camera.get_image()
-        print(frame)
-        
+
         # TODO integrate the frontent function that gives you this boolean
-        if (take_picture):
-            pass
-            
+        if take_picture:
+            print('Took picture!')
+            pygame.image.save(frame, 'webcam.jpg')
+            trees = vis.custom_vision_tree('webcam.jpg')
+            print(trees)
+            upload_image_data(trees)
+            take_picture = False
+
             """
             # TODO postprocessing function
             planted_tree_map = SOME FUNCTION
             """
 
-async def main():
-    await asyncio.gather(
-        ws_listener(),
-        camera_loop(),
-    )
-
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(main())
+    connect_ws()
+    camera_loop()

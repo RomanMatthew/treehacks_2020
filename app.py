@@ -1,68 +1,58 @@
+#!/usr/bin/env python3
+
 import time
-import numpy as np
-import cv2
-import os
-import custom_vision_tree as cvt
-import asyncio
-import websockets
+import custom_vision as vis
+import pygame
+import pygame.camera
+import requests
+import _thread as thread
+import websocket
 
-global take_picture
+SERVER_URL = 'localhost:8000'
+take_picture = False
 
-async def ws_listener(websocket, path):
-    async with websockets.connect("ws://10.19.188.153:8000") as websocket:
-        while True:
-            msg = await websocket.recv()
-            take_picture = True if msg=="take_picture" else False
-            print("Recieved command: ", take_picture)
-        
-            
-    
+def on_ws_message(ws, message):
+    global take_picture
+    print('Got message!')
+    if message == 'take_picture':
+        take_picture = True
 
-def main():
-    
-    take_picture = False
-    cwd = os.getcwd()
+def connect_ws():
+    global take_picture
+    print('Connecting web socket...')
+    uri = 'ws://' + SERVER_URL + '/command-stream'
+    client = websocket.WebSocketApp(uri, on_message=on_ws_message)
+    print('Web socket connected!')
+    def run():
+        client.run_forever()
+    thread.start_new_thread(run, ())
 
-    cap = cv2.VideoCapture(0)
+def upload_image_data(image_data):
+    uri = 'http://' + SERVER_URL + '/api/image-data'
+    requests.post(uri, json=image_data)
 
-    try:
-            time.sleep(2.0)
+def camera_loop():
+    global take_picture
 
-            # loop detection
-            # GET INPUT FROM THE USER HAHA
-            while True:
-                ret, frame = cap.read()
-                
-                # TODO integrate the frontent function that gives you this boolean
-                if (take_picture):
-                    ret, full_image = cap.read()
-                    image_name = str(full_image)+".jpg"
-                    cv2.imwrite(image_name, full_image)
-                    img_path = cwd+"/"+image_name
-                    
-                    prediction = cvt.retrieve_predictions(img_path)
-                    
-                    """
-                    # TODO postprocessing function
-                    planted_tree_map = SOME FUNCTION
-                    cv2.imshow('Optimal tree planting', planted_tree_map)
-                    cv2.waitKey(0)
-                    cv2.destroyAllWindows()
-                    """
-                    take_picture = False
-                    
-                gray = cv2.cvtColor(np.float32(frame), cv2.COLOR_BGR2GRAY)
-                
-                cv2.imshow('frame',gray)
-                
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+    pygame.camera.init()
 
-    finally:
-        cap.release()
-        cv2.destroyAllWindows()
-        print("Program Ending")
+    print('Loading webcam...')
+    camera = pygame.camera.Camera("/dev/video3", (640, 480))
+    # Allow Webcam to warm up
+    camera.start()
+
+    print('Webcam loaded!')
+    while True:
+        frame = camera.get_image()
+
+        if take_picture:
+            print('Took picture!')
+            pygame.image.save(frame, 'webcam.jpg')
+            trees = vis.custom_vision_tree('webcam.jpg')
+            upload_image_data(trees)
+            take_picture = False
 
 
 if __name__ == "__main__":
-    main()
+    connect_ws()
+    camera_loop()

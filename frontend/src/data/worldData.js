@@ -124,7 +124,7 @@ class WorldData {
     }
 
     generateNewTrees(layer, x, y, w, h) {
-        for (let i = 0; i < 350; i++) {
+        for (let i = 0; i < 200; i++) {
             let px = x + w * Math.random();
             let py = y + h * Math.random();
             let densityMod = this.densityModifier.read(px, py);
@@ -133,8 +133,8 @@ class WorldData {
             let probability = (1.0 - existingDensity / targetDensity) * (targetDensity / 0.6);
             let r = this.newTreeSize * (Math.random() * 0.5 + 0.8);
             if (
-                Math.random() < probability 
-                && !layer.checkForCollision(px, py, r) 
+                Math.random() < probability
+                && !this.newTrees.checkForCollision(px, py, r) 
                 && !this.trees.checkForCollision(px, py, r)
             ) {
                 layer.addPoint(px, py, r);
@@ -144,8 +144,8 @@ class WorldData {
 
     generateDummyData() {
         let simplex = new SimplexNoise();
-        for (let x = 0; x < 20000; x += 13) {
-            for (let y = 0; y < 20000; y += 13) {
+        for (let x = 0; x < 10000; x += 13) {
+            for (let y = 0; y < 10000; y += 13) {
                 if (Math.random() > simplex.noise(x / 10000.0, y / 10000.0) * 0.7 + 0.2) continue;
                 let xx = x + Math.random() * 15.0;
                 let yy = y + Math.random() * 15.0;

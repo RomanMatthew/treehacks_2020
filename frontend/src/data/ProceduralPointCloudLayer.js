@@ -1,6 +1,8 @@
 import PointCloudLayer from './PointCloudLayer.js';
+import { identifier2d } from './util.js';
 
 const GENERATE_QUEUE_MAX_LENGTH = 256;
+const MAX_PROCESSING_TIME = 20; // Stop generating things after this much time has elapsed.
 
 export default class ProceduralPointCloudLayer extends PointCloudLayer {
     // tileGenerator: (layer, x, y, w, h) => void
@@ -17,22 +19,17 @@ export default class ProceduralPointCloudLayer extends PointCloudLayer {
 
     _doAsyncWork() {
         // Proccesss up to GENERATE_QUEUE_MAX_LENGTH items before taking a breka.
-        for (let limit = 0; limit < GENERATE_QUEUE_MAX_LENGTH / 4; limit++) {
-            if (this.generateQueue.length > 0) {
-                let nextItem = this.generateQueue.pop();
-                if (this._getTileVersion(nextItem[0], nextItem[1]) === this.versionHash) continue;
-                this._generateTile(nextItem[0], nextItem[1]);
-            } else {
-                // If we run out of work, wait longer to start back up next time.
-                setTimeout(() => this._doAsyncWork(), 50);
-                return;
-            }
+        let startTime = Date.now();
+        while (this.generateQueue.length > 0 && (Date.now() - startTime) < MAX_PROCESSING_TIME) {
+            let nextItem = this.generateQueue.pop();
+            if (this._getTileVersion(nextItem[0], nextItem[1]) === this.versionHash) continue;
+            this._generateTile(nextItem[0], nextItem[1]);
         }
-        setTimeout(() => this._doAsyncWork(), 5);
+        setTimeout(() => this._doAsyncWork(), 20);
     }
 
     _getTile(tx, ty) {
-        let identifier = `${tx}:${ty}`; 
+        let identifier = identifier2d(tx, ty);
         if (!this.tiles[identifier]) {
             this.tiles[identifier] = [];
             // A version hash of zero means the tile has never been written to.
@@ -42,7 +39,7 @@ export default class ProceduralPointCloudLayer extends PointCloudLayer {
     }
 
     _getTileVersion(tx, ty) {
-        let identifier = `${tx}:${ty}`; 
+        let identifier = identifier2d(tx, ty);
         if (!this.tiles[identifier]) {
             this.tiles[identifier] = [];
             this.tileVersionHashes[identifier] = 0;
@@ -57,7 +54,7 @@ export default class ProceduralPointCloudLayer extends PointCloudLayer {
             this.tileSize,
             this.tileSize,
         );
-        let identifier = `${tx}:${ty}`; 
+        let identifier = identifier2d(tx, ty);
         this.tiles[identifier] = [];
         this.tileVersionHashes[identifier] = 0;
     }
@@ -76,7 +73,7 @@ export default class ProceduralPointCloudLayer extends PointCloudLayer {
                 this._cleanupTile(tx + dx - 1, ty + dy - 1);
             }
         }
-        let identifier = `${tx}:${ty}`; 
+        let identifier = identifier2d(tx, ty);
         this.tileVersionHashes[identifier] = this.versionHash;
         this.tileGenerator(
             this, 

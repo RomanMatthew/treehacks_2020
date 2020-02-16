@@ -1,4 +1,7 @@
 import TiledDataLayer from './TiledDataLayer.js';
+import { identifier2d } from './util.js';
+
+const TILE_CAPACITY = 128;
 
 function areaOfCircle(radius) {
     return Math.PI * radius * radius;
@@ -31,11 +34,16 @@ export default class PointCloudLayer {
     }
 
     _getTile(tx, ty) {
-        let identifier = `${tx}:${ty}`; 
+        let identifier = identifier2d(tx, ty);
         if (!this.tiles[identifier]) {
             this.tiles[identifier] = [];
         }
         return this.tiles[identifier];
+    }
+
+    _readTile(tx, ty) {
+        let identifier = identifier2d(tx, ty);
+        return this.tiles[identifier] || [];
     }
 
     addPoint(x, y, r) {
@@ -50,18 +58,27 @@ export default class PointCloudLayer {
         this.mipmap.write(x, y, mipValue);
     }
 
-    // Collects all points which might overlap with the given region.
-    _collectPointsAround(x, y, r) {
+    _forEachPointsAround(x, y, r, func) {
         let tr = Math.ceil(r / this.tileSize);
         let ctx = Math.floor(x / this.tileSize);
         let cty = Math.floor(y / this.tileSize);
-        let result = [];
         for (let tx = ctx - tr; tx <= ctx + tr; tx++) {
             for (let ty = cty - tr; ty <= cty + tr; ty++) {
-                result = result.concat(this._getTile(tx, ty));
+                this._readTile(tx, ty).forEach(func);
             }
         }
-        return result;
+    }
+
+    _somePointsAround(x, y, r, test) {
+        let tr = Math.ceil(r / this.tileSize);
+        let ctx = Math.floor(x / this.tileSize);
+        let cty = Math.floor(y / this.tileSize);
+        for (let tx = ctx - tr; tx <= ctx + tr; tx++) {
+            for (let ty = cty - tr; ty <= cty + tr; ty++) {
+                if (this._readTile(tx, ty).some(test)) return true;
+            }
+        }
+        return false;
     }
 
     // Computes the amount of space filled in the circle defined by the 
@@ -69,13 +86,13 @@ export default class PointCloudLayer {
     // points, so if any of those exist, the result may be artificially high.
     computeDensity(x, y, r) {
         let coveredArea = 0.0;
-        for (let possiblePoint of this._collectPointsAround(x, y, r + 50.0)) {
+        this._forEachPointsAround(x, y, r + 50.0, possiblePoint => {
             let dx = x - possiblePoint.x;
             let dy = y - possiblePoint.y;
             let distance = Math.sqrt(dx * dx + dy * dy);
             if (distance - possiblePoint.r > r) {
                 // The point is outside our search area.
-                continue;
+                return;
             } else if (distance + possiblePoint.r > r) {
                 // The point is partially inside our search area.
                 coveredArea += areaOfIntersectingCircles(r, possiblePoint.r, distance);
@@ -83,7 +100,7 @@ export default class PointCloudLayer {
                 // The point is completely inside our search area.
                 coveredArea += areaOfCircle(possiblePoint.r);
             }
-        }
+        });
         return coveredArea / areaOfCircle(r);
     }
 
@@ -93,13 +110,31 @@ export default class PointCloudLayer {
         let pr = Math.floor(r / pixelSize);
         let cpx = Math.floor(x / pixelSize);
         let cpy = Math.floor(y / pixelSize);
+        let x1 = cpx - pr;
+        let y1 = cpy - pr;
+        let x2 = cpx + pr;
+        let y2 = cpy + pr;
+        let tx1 = Math.floor(x1 / this.mipmap.tileSize);
+        let ty1 = Math.floor(y1 / this.mipmap.tileSize);
+        let tx2 = Math.ceil(x2 / this.mipmap.tileSize);
+        let ty2 = Math.ceil(y2 / this.mipmap.tileSize);
         let sum = 0.0;
-        for (let dx = -pr; dx <= pr; dx++) {
-            for (let dy = -pr; dy <= pr; dy++) {
-                sum += this.mipmap.read(
-                    (cpx + dx) * this.mipmap.pixelSize, 
-                    (cpy + dy) * this.mipmap.pixelSize, 
-                );
+        for (let tx = tx1; tx <= tx2; tx++) {
+            for (let ty = ty1; ty <= ty2; ty++) {
+                let tile = this.mipmap._getTile(tx, ty);
+                let tileStartX = tx * this.mipmap.tileSize;
+                let tileStartY = ty * this.mipmap.tileSize;
+                let tileEndX = tileStartX + this.mipmap.tileSize;
+                let tileEndY = tileStartY + this.mipmap.tileSize;
+                let searchStartX = Math.max(x1, tileStartX) - tileStartX;
+                let searchStartY = Math.max(y1, tileStartY) - tileStartY;
+                let searchEndX = Math.min(x2, tileEndX) - tileStartX;
+                let searchEndY = Math.min(y2, tileEndY) - tileStartY;
+                for (let lx = searchStartX; lx < searchEndX; lx++) {
+                    for (let ly = searchStartY; ly < searchEndY; ly++) {
+                        sum += tile.read(lx, ly);
+                    }
+                }
             }
         }
         let edgeLen = 2 * pr + 1;
@@ -108,15 +143,12 @@ export default class PointCloudLayer {
     }
 
     checkForCollision(x, y, r) {
-        for (let point of this._collectPointsAround(x, y, r)) {
-            let dx = (point.x - x);
-            let dy = (point.y - y);
-            let dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < r + point.r) {
-                return true;
-            }
-        }
-        return false;
+        let yes = this._somePointsAround(x, y, r, point => {
+            // Manhattan distance approximation, much faster than pythagorean.
+            let dist = Math.abs(x - point.x) + Math.abs(y - point.y) - (point.r + r) * 2.0;
+            return dist < 0;
+        });
+        return yes; // && !no
     }
 
     drawPoint(c, x, y, r) {
@@ -162,7 +194,7 @@ export default class PointCloudLayer {
 
         for (let tx = tx1; tx <= tx2; tx++) {
             for (let ty = ty1; ty <= ty2; ty++) {
-                let tile = this._getTile(tx, ty);
+                let tile = this._readTile(tx, ty);
                 for (let point of tile) {
                     this.drawPoint(
                         context, 

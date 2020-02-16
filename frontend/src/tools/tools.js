@@ -16,6 +16,8 @@ const panTool = {
     },
     onScroll: (ctx, ds) => {
         ctx.dataview.zoomLevel *= Math.pow(2.0, ds * -0.1);
+        ctx.dataview.zoomLevel = Math.min(ctx.dataview.zoomLevel, 16.0);
+        ctx.dataview.zoomLevel = Math.max(ctx.dataview.zoomLevel, 1 / 16.0);
         return true;
     },
     renderOptions: () => null,

@@ -124,7 +124,9 @@ class WorldData {
     }
 
     generateNewTrees(layer, x, y, w, h) {
-        for (let i = 0; i < 200; i++) {
+        let treeMultiplier = (4.0 / this.newTreeSize);
+        treeMultiplier *= treeMultiplier;
+        for (let i = 0; i < 500 * treeMultiplier; i++) {
             let px = x + w * Math.random();
             let py = y + h * Math.random();
             let densityMod = this.densityModifier.read(px, py);
@@ -159,11 +161,6 @@ class WorldData {
                 this.trees.addPoint(xx, yy, r);
             }
         }
-    }
-
-    drawTiledDataToContext(context, x1, y1, x2, y2)  {
-        this.densityModifier.drawToContext(context, x1, y1, x2, y2);
-        this.newTrees.drawToContext(context, x1, y1, x2, y2);
     }
 }
 

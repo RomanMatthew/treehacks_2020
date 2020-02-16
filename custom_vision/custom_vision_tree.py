@@ -12,6 +12,9 @@ def custom_vision_tree(image_url = "test3.jpg"):
 	    results = predictor.detect_image(
 	        projectid, publish_iteration_name, image_contents.read())
 
-	# Display the results.    
+	# Display the results.   
+	print(results) 
 	for prediction in results.predictions:
 	    print("\t" + prediction.tag_name + ": {0:.2f}% bbox.left = {1:.2f}, bbox.top = {2:.2f}, bbox.width = {3:.2f}, bbox.height = {4:.2f}".format(prediction.probability * 100, prediction.bounding_box.left, prediction.bounding_box.top, prediction.bounding_box.width, prediction.bounding_box.height))
+	return results
+# custom_vision_tree()

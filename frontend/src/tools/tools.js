@@ -152,7 +152,25 @@ const densityTool = {
     }
 };
 
-let tools = [panTool, infoTool, densityTool];
+const pictureTool = {
+    name: 'picture',
+    displayName: 'Capture Image',
+    icon: 'camera_alt',
+    description: 'Click anywhere to capture an image from any connected camera '
+        + 'and process it to detect trees.',
+    onClick: async (ctx) => {
+        let imageData = await fetch('/api/image-data');
+        for (let tree of await imageData.json()) {
+            ctx.worldData.trees.addPoint(tree[0], tree[1], tree[2]);
+        }
+        return true;
+    },
+    onDrag: () => null,
+    onScroll: () => null,
+    renderOptions: () => null,
+};
+
+let tools = [panTool, infoTool, densityTool, pictureTool];
 export default tools;
 
 export let defaultToolset = {

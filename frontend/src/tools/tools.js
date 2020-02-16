@@ -62,6 +62,10 @@ function makeSoftRadialBrush(brushRadius, brushStrength, brushValue) {
     }
 }
 
+function makeBrush(options) {
+    return makeSoftRadialBrush(options.radius, options.strength / 100.0, options.value / 100.0);
+}
+
 let brushDragDelta = 0;
 
 const densityTool = {
@@ -69,10 +73,12 @@ const densityTool = {
     displayName: 'Draw Density',
     icon: 'brush',
     description: 'Draw areas to have increased/decreased density compared to '
-        + 'the value set with the tree info tool.',
+        + 'the value set with the tree info tool. Blue areas have higher '
+        + 'density (with the bluest being +100%) and red areas have lower '
+        + 'density (with the reddest being -100%).',
     onClick: (ctx, x, y) => {
         brushDragDelta = 0;
-        let brush = makeSoftRadialBrush(ctx.options.radius, 1.0, 1.0);
+        let brush = makeBrush(ctx.options);
         ctx.worldData.densityModifier.executeBrush(x, y, ctx.options.radius, brush);
         return true;
     },
@@ -80,7 +86,7 @@ const densityTool = {
         brushDragDelta += Math.sqrt(dx * dx + dy * dy);
         if (brushDragDelta > ctx.options.radius  / 4.0) {
             brushDragDelta = 0.0;
-            let brush = makeSoftRadialBrush(ctx.options.radius, 1.0, 1.0);
+            let brush = makeBrush(ctx.options);
             ctx.worldData.densityModifier.executeBrush(nx, ny, ctx.options.radius, brush);
             return true;
         }
@@ -99,12 +105,28 @@ const densityTool = {
             max={5000}
             valueLabelDisplay="auto"
         />
-        <div>Default Density (%)</div>
+        <div>Brush Strength (%)</div>
         <Slider 
-            defaultValue={100.0}
-            step={1.0}
-            min={1.0}
-            max={100.0}
+            value={options.strength}
+            onChange={(_, value) => {
+                options.strength = value;
+                onChangeOptions();
+            }}
+            step={1}
+            min={0}
+            max={100}
+            valueLabelDisplay="auto"
+        />
+        <div>Brush Value (%)</div>
+        <Slider 
+            value={options.value}
+            onChange={(_, value) => {
+                options.value = value;
+                onChangeOptions();
+            }}
+            step={1}
+            min={-100}
+            max={100}
             valueLabelDisplay="auto"
         />
     </div>),

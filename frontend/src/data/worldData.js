@@ -1,6 +1,16 @@
+import TiledDataLayer from './TiledDataLayer.js';
+window.TiledDataLayer = TiledDataLayer;
+
 class WorldData {
     constructor() {
         this.trees = [];
+        this.densityModifier = new TiledDataLayer(64.0, value => {
+            if (value > 0.0) {
+                return [0, 1, 1, value];
+            } else {
+                return [1, 0, 0, -value];
+            }
+        });
         this.generateDummyData();
     }
 
@@ -18,6 +28,10 @@ class WorldData {
                 });
             }
         }
+    }
+
+    drawTiledDataToContext(context, x1, y1, x2, y2)  {
+        this.densityModifier.drawToContext(context, x1, y1, x2, y2);
     }
 }
 

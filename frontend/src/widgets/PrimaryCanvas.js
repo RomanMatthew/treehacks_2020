@@ -156,6 +156,14 @@ class PrimaryCanvas extends React.Component {
         this.context = this.canvasRef.current.getContext('2d');
         this.clearCanvas();
 
+        this.context.globalAlpha = 0.7;
+        let x1 = -this.context.canvas.width / 2 / this.zoomLevel + this.cameraX;
+        let y1 = -this.context.canvas.height / 2 / this.zoomLevel + this.cameraY;
+        let x2 = this.context.canvas.width / 2 / this.zoomLevel + this.cameraX;
+        let y2 = this.context.canvas.height / 2 / this.zoomLevel + this.cameraY;
+        worldData.drawTiledDataToContext(this.context, x1, y1, x2, y2);
+
+        this.context.globalAlpha = 1.0;
         for (let tree of worldData.trees) {
             this.drawTree(tree);
         }

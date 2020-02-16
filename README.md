@@ -21,7 +21,7 @@ Finally, we send to an optimization algorithm that utilizes all the free space p
 
 ## Technical Notes
 
-- Azure costume vision was used to train an object detection model that could label tree and trees. We used about 33 images found online to train this machine learning model, resulting in a precision of 82.5%
+- Azure custom vision was used to train an object detection model that could label tree and trees. We used about 33 images found online to train this machine learning model, resulting in a precision of 82.5%
 - We used the custom vision API to send our aerial view images of forests to the prediction endpoint which returned predictions consisting of confidence level, label, and a bounding box.
 - We then parsed the output of the object detection by creating a 2D numpy array in Python representing the original image. We filled indices of the array with 1’s where pixels were labeled as “tree” or “trees” with at least a 50% confidence. At the same time, we extracted the max width and height of the canopy of the trees to automate the process for users. The users are allowed to input a buffer, as a percentage, which increases the bounding box for tree growth based on the current , this is especially important if the roots of the tree need space to grow or the tree species is competitive. 
 - After the 2D array was filled with pre-existing trees, we iterated through the array to find places where new trees could be planted such that there was enough space for the tree to mature to its full canopy size. We labeled these indices with 2 to differentiate between existing trees and potential new trees.

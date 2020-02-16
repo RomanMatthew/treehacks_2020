@@ -49,7 +49,6 @@ def camera_loop():
     while True:
         frame = camera.get_image()
 
-        # TODO integrate the frontent function that gives you this boolean
         if take_picture:
             print('Took picture!')
             pygame.image.save(frame, 'webcam.jpg')
@@ -58,10 +57,6 @@ def camera_loop():
             upload_image_data(trees)
             take_picture = False
 
-            """
-            # TODO postprocessing function
-            planted_tree_map = SOME FUNCTION
-            """
 
 if __name__ == "__main__":
     connect_ws()

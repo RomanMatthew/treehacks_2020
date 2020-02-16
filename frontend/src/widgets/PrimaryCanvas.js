@@ -3,6 +3,9 @@ import styles from './PrimaryCanvas.module.css';
 import worldData from '../data/worldData.js';
 import tools from '../tools/tools.js';
 
+// Occasionally redraw the canvas to show any progress made by async workers.
+const OCCASIONAL_REFRESH_INTERVAL = 200;
+
 class PrimaryCanvas extends React.Component {
     constructor(props) {
         super(props);
@@ -14,6 +17,8 @@ class PrimaryCanvas extends React.Component {
         this.oldMouseX = 0;
         this.oldMouseY = 0;
         this.mouseDown = false;
+
+        this.refreshTimeout = setTimeout(() => this.drawCanvas(), OCCASIONAL_REFRESH_INTERVAL);
     }
 
     _getActiveTool() {
@@ -121,6 +126,8 @@ class PrimaryCanvas extends React.Component {
     }
 
     drawCanvas() {
+        clearTimeout(this.refreshTimeout);
+        this.refreshTimeout = undefined;
         this.context = this.canvasRef.current.getContext('2d');
         this.clearCanvas();
         let x1 = this.inverseTransformX(0);
@@ -132,6 +139,9 @@ class PrimaryCanvas extends React.Component {
         worldData.drawTiledDataToContext(this.context, x1, y1, x2, y2);
         this.context.globalAlpha = 1.0;
         worldData.trees.drawToContext(this.context, x1, y1, x2, y2);
+        if (!this.refreshTimeout) {
+            this.refreshTimeout = setTimeout(() => this.drawCanvas(), OCCASIONAL_REFRESH_INTERVAL);
+        }
     }
 
     render() {

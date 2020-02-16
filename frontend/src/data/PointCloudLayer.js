@@ -121,7 +121,6 @@ export default class PointCloudLayer {
         let screenLengthPerRadius = (screenXPerPixel + screenYPerPixel) / 2;
 
         let mipPixelSize = (screenXPerPixel * this.tileSize) / this.mipmapResolutionDivisor;
-        console.log(mipPixelSize);
         // If the mipmap would have sufficient resolution, draw it instead 
         // because it's much less of a load on the browser.
         if (mipPixelSize < 16.0) {

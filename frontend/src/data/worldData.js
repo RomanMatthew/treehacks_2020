@@ -1,5 +1,6 @@
 import PointCloudLayer from './PointCloudLayer';
 import TiledDataLayer from './TiledDataLayer.js';
+import ProceduralPointCloudLayer from './ProceduralPointCloudLayer';
 window.TiledDataLayer = TiledDataLayer;
 
 // Ported from Stefan Gustavson's java implementation
@@ -13,17 +14,17 @@ window.TiledDataLayer = TiledDataLayer;
  * It is assumed to have a random() method.
  */
 var SimplexNoise = function(r) {
-	if (r == undefined) r = Math;
+	if (r === undefined) r = Math;
   this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0], 
                                  [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1], 
                                  [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]]; 
   this.p = [];
-  for (var i=0; i<256; i++) {
+  for (let i=0; i<256; i++) {
 	  this.p[i] = Math.floor(r.random()*256);
   }
   // To remove the need for index wrapping, double the permutation table length 
   this.perm = []; 
-  for(var i=0; i<512; i++) {
+  for(let i=0; i<512; i++) {
 		this.perm[i]=this.p[i & 255];
 	} 
 
@@ -102,9 +103,15 @@ SimplexNoise.prototype.noise = function(xin, yin) {
 class WorldData {
     constructor() {
         const treeGreen = [128, 160, 64];
-        const newTreeGreen = [160, 255, 64];
+        const newTreeGreen = [64, 255, 200];
 
         this.trees = new PointCloudLayer(treeGreen, 128.0);
+        let generator = (layer, x, y, w, h) => {
+            for (let i = 0; i < 50; i++) {
+                layer.addPoint(x + w * Math.random(), y + h * Math.random(), Math.random() * 20.0);
+            }
+        };
+        this.procTest = new ProceduralPointCloudLayer(newTreeGreen, 128.0, generator);
         this.densityModifier = new TiledDataLayer(64.0, value => {
             if (value > 0.0) {
                 return [0, 1, 1, value];
@@ -118,11 +125,11 @@ class WorldData {
     generateDummyData() {
         let simplex = new SimplexNoise();
         let totalTrees = 0;
-        for (let x = 0; x < 50000; x += 20) {
-            for (let y = 0; y < 50000; y += 20) {
-                if (Math.random() > simplex.noise(x / 10000.0, y / 10000.0) * 0.5 + 0.2) continue;
-                let xx = x + Math.random() * 5.0;
-                let yy = y + Math.random() * 5.0;
+        for (let x = 0; x < 20000; x += 20) {
+            for (let y = 0; y < 20000; y += 20) {
+                if (Math.random() > simplex.noise(x / 10000.0, y / 10000.0) * 0.7 + 0.2) continue;
+                let xx = x + Math.random() * 15.0;
+                let yy = y + Math.random() * 15.0;
                 let r = Math.random() * 10.0 + 3.0;
                 this.trees.addPoint(xx, yy, r);
                 totalTrees += 1;
@@ -132,6 +139,7 @@ class WorldData {
 
     drawTiledDataToContext(context, x1, y1, x2, y2)  {
         this.densityModifier.drawToContext(context, x1, y1, x2, y2);
+        this.procTest.drawToContext(context, x1, y1, x2, y2);
     }
 }
 

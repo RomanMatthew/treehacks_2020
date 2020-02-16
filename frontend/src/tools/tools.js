@@ -157,12 +157,14 @@ const pictureTool = {
     displayName: 'Capture Image',
     icon: 'camera_alt',
     description: 'Click anywhere to capture an image from any connected camera '
-        + 'and process it to detect trees.',
-    onClick: async (ctx) => {
+        + 'and process it to detect trees. The results will be placed next to '
+        + 'where you clicked.',
+    onClick: async (ctx, x, y) => {
         let imageData = await fetch('/api/image-data');
         for (let tree of await imageData.json()) {
-            ctx.worldData.trees.addPoint(tree[0], tree[1], tree[2]);
+            ctx.worldData.trees.addPoint(tree[0] + x, tree[1] + y, tree[2]);
         }
+        ctx.worldData.newTrees.markEverythingDirty();
         return true;
     },
     onDrag: () => null,

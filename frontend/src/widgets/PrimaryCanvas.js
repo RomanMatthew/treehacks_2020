@@ -58,6 +58,20 @@ class PrimaryCanvas extends React.Component {
 
     onClick(x, y) {
         let tool = this.props.toolset.active;
+        if (tool === 'density') {
+            console.log(
+
+                this.inverseTransformX(x), 
+                this.inverseTransformY(y),
+            );
+            worldData.densityModifier.executeBrush(
+                this.inverseTransformX(x), 
+                this.inverseTransformY(y),
+                50,
+                (dx, dy, oldValue) => oldValue + 0.1
+            );
+            this.drawCanvas();
+        }
     }
 
     onDrag(dx, dy, nx, ny) {
@@ -89,6 +103,16 @@ class PrimaryCanvas extends React.Component {
     transformY(coord) {
         let canvas = this.canvasRef.current;
         return (coord - this.cameraY) * this.zoomLevel + canvas.height / 2;
+    }
+
+    inverseTransformX(coord) {
+        let canvas = this.canvasRef.current;
+        return (coord - canvas.width / 2) / this.zoomLevel + this.cameraX;
+    }
+
+    inverseTransformY(coord) {
+        let canvas = this.canvasRef.current;
+        return (coord - canvas.height / 2) / this.zoomLevel + this.cameraY;
     }
 
     transformLength(length) {

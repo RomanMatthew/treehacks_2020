@@ -83,6 +83,22 @@ export default class TiledDataLayer {
         return this._getTile(tilex, tiley).write(pixelx, pixely, value);
     }
 
+    // brushFunc: (dx, dy, oldValue) => newValue
+    executeBrush(x, y, radius, brushFunc) {
+        x /= this.pixelSize;
+        y /= this.pixelSize;
+        radius /= this.pixelSize;
+        let cx = x;
+        let cy = y;
+        for (let x = cx - radius; x <= cx + radius; x++) {
+            for (let y = cy - radius; y <= cy + radius; y++) {
+                let oldValue = this.read(x, y);
+                let newValue = brushFunc(x - cx, y - cy, oldValue);
+                this.write(x, y, newValue);
+            }
+        }
+    }
+
     drawToContext(context, x1, y1, x2, y2) {
         x1 /= this.pixelSize;
         y1 /= this.pixelSize;

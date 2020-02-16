@@ -8,10 +8,12 @@ class Toolbox extends React.Component {
         let tools = [
             { name: 'pan', displayName: 'Pan/Zoom', icon: 'pan_tool', description: '' },
             { name: 'info', displayName: 'Tree Info', icon: 'info', description: '' },
+            { name: 'density', displayName: 'Density Brush', icon: 'brush', description: '' },
         ];
-        tools[0].description = 'Click and drag to pan the view, and scroll in and out to zoom.';
-        tools[1].description = 'Enter information about the trees that will be planted. This ';
+        tools[0].description += 'Click and drag to pan the view, and scroll in and out to zoom.';
+        tools[1].description += 'Enter information about the trees that will be planted. This ';
         tools[1].description += 'information will be used by the algorithm to place new trees.';
+        tools[2].description += 'Adjust the density of reforestation in different areas.';
         let toolButtons = tools.map(tool => (
             <ToolButton 
                 key={tool.name}

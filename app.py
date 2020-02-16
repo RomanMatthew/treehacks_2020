@@ -1,15 +1,14 @@
-#!/usry/bin/env python
-
 import time
-import edgeiq
-#import tree_classifier as tc
+import numpy as np
+import cv2
+import os
+import custom_vision_tree as cvt
 import asyncio
 import websockets
 
-take_picture = False
+global take_picture
 
 async def ws_listener(websocket, path):
-    uri = "whoop" #TODO, DEFINE WHAT THE URI IS
     async with websockets.connect("ws://10.19.188.153:8000") as websocket:
         while True:
             msg = await websocket.recv()
@@ -20,59 +19,48 @@ async def ws_listener(websocket, path):
     
 
 def main():
-    semantic_segmentation = edgeiq.SemanticSegmentation("alwaysai/enet")
-    semantic_segmentation.load(engine=edgeiq.Engine.DNN_CUDA)
+    
+    take_picture = False
+    cwd = os.getcwd()
 
-    print("Loaded model:\n{}\n".format(semantic_segmentation.model_id))
-    print("Engine: {}".format(semantic_segmentation.engine))
-    print("Accelerator: {}\n".format(semantic_segmentation.accelerator))
-    print("Labels:\n{}\n".format(semantic_segmentation.labels))
-
-    fps = edgeiq.FPS()
+    cap = cv2.VideoCapture(0)
 
     try:
-        with edgeiq.WebcamVideoStream(cam=0) as video_stream, \
-                edgeiq.Streamer() as streamer:
-            # Allow Webcam to warm up
             time.sleep(2.0)
-            fps.start()
 
             # loop detection
             # GET INPUT FROM THE USER HAHA
             while True:
-                frame = video_stream.read()
-                results = semantic_segmentation.segment_image(frame)
+                ret, frame = cap.read()
                 
                 # TODO integrate the frontent function that gives you this boolean
                 if (take_picture):
-                    saved_frame, full_image = video_stream.read()
+                    ret, full_image = cap.read()
+                    image_name = str(full_image)+".jpg"
+                    cv2.imwrite(image_name, full_image)
+                    img_path = cwd+"/"+image_name
                     
-                    prediction = tc.retrieve_predictions(full_image)
+                    prediction = cvt.retrieve_predictions(img_path)
                     
                     """
                     # TODO postprocessing function
                     planted_tree_map = SOME FUNCTION
+                    cv2.imshow('Optimal tree planting', planted_tree_map)
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
                     """
-
-                # Generate text to display on streamer
-                text = ["Model: {}".format(semantic_segmentation.model_id)]
-                text.append("Inference time: {:1.3f} s".format(results.duration))
-                text.append("Legend:")
-                text.append(semantic_segmentation.build_legend())
-
-                streamer.send_data(frame, text)
+                    take_picture = False
+                    
+                gray = cv2.cvtColor(np.float32(frame), cv2.COLOR_BGR2GRAY)
                 
-
-                fps.update()
-
-                if streamer.check_exit():
+                cv2.imshow('frame',gray)
+                
+                if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
 
     finally:
-        fps.stop()
-        print("elapsed time: {:.2f}".format(fps.get_elapsed_seconds()))
-        print("approx. FPS: {:.2f}".format(fps.compute_fps()))
-
+        cap.release()
+        cv2.destroyAllWindows()
         print("Program Ending")
 
 

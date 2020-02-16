@@ -1,3 +1,5 @@
+import TiledDataLayer from './TiledDataLayer.js';
+
 function areaOfCircle(radius) {
     return Math.PI * radius * radius;
 }
@@ -18,7 +20,14 @@ export default class PointCloudLayer {
     constructor(color, tileSize) {
         this.tileSize = tileSize;
         this.tiles = {};
-        this.color = color;
+        this.color = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+        this.mipmapResolutionDivisor = 2.0;
+        this.mipmap = new TiledDataLayer(
+            this.tileSize / this.mipmapResolutionDivisor, 
+            value => [color[0] / 255, color[1] / 255, color[2] / 255, value]
+        );
+        this.mipPixelArea = (tileSize / this.mipmapResolutionDivisor);
+        this.mipPixelArea *= this.mipPixelArea;
     }
 
     _getTile(tx, ty) {
@@ -34,6 +43,11 @@ export default class PointCloudLayer {
         let ty = Math.floor(y / this.tileSize);
         let tile = this._getTile(tx, ty);
         tile.push({ x: x, y: y, r: r });
+        // This is a good enough approximation of the area of coverage in every
+        // pixel.
+        let mipValue = this.mipmap.read(x, y);
+        mipValue += areaOfCircle(r) / this.mipPixelArea;
+        this.mipmap.write(x, y, mipValue);
     }
 
     // Collects all points which might overlap with the given region.
@@ -70,7 +84,7 @@ export default class PointCloudLayer {
                 coveredArea += areaOfCircle(possiblePoint.r);
             }
         }
-        return coveredArea;
+        return coveredArea / areaOfCircle(r);
     }
 
     drawPoint(c, x, y, r) {
@@ -78,17 +92,19 @@ export default class PointCloudLayer {
         c.lineWidth = 2;
         c.fillStyle = c.strokeStyle;
 
-        if (r > 5.0) {
+        if (r > 7.0) {
             c.beginPath();
             c.ellipse(x, y, r, r, 0, 0, Math.PI * 2.0);
             c.stroke();
             c.beginPath();
-            c.ellipse(x, y, 3, 3, 0, 0, Math.PI * 2.0);
+            c.ellipse(x, y, 4, 4, 0, 0, Math.PI * 2.0);
             c.fill();
-        } else {
+        } else if (r > 4.0) {
             c.beginPath();
             c.ellipse(x, y, r, r, 0, 0, Math.PI * 2.0);
             c.fill();
+        } else {
+            c.fillRect(x-r, y-r, r, r);
         }
     }
 
@@ -104,10 +120,18 @@ export default class PointCloudLayer {
         let screenYPerPixel = screenHeight / (y2 - y1);
         let screenLengthPerRadius = (screenXPerPixel + screenYPerPixel) / 2;
 
+        let mipPixelSize = (screenXPerPixel * this.tileSize) / this.mipmapResolutionDivisor;
+        console.log(mipPixelSize);
+        // If the mipmap would have sufficient resolution, draw it instead 
+        // because it's much less of a load on the browser.
+        if (mipPixelSize < 16.0) {
+            this.mipmap.drawToContext(context, x1, y1, x2, y2);
+            return;
+        }
+
         for (let tx = tx1; tx <= tx2; tx++) {
             for (let ty = ty1; ty <= ty2; ty++) {
                 let tile = this._getTile(tx, ty);
-                console.log(tile.length);
                 for (let point of tile) {
                     this.drawPoint(
                         context, 

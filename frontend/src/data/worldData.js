@@ -4,10 +4,10 @@ window.TiledDataLayer = TiledDataLayer;
 
 class WorldData {
     constructor() {
-        const treeGreen = '#80A040';
-        const newTreeGreen = '#A0FF40';
+        const treeGreen = [128, 160, 64];
+        const newTreeGreen = [160, 255, 64];
 
-        this.trees = new PointCloudLayer(treeGreen, 512.0);
+        this.trees = new PointCloudLayer(treeGreen, 128.0);
         this.densityModifier = new TiledDataLayer(64.0, value => {
             if (value > 0.0) {
                 return [0, 1, 1, value];

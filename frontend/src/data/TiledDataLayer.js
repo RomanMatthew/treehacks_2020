@@ -97,6 +97,46 @@ export default class TiledDataLayer {
         }
     }
 
+    clearSegment(sx, sy, sw, sh) {
+        sx /= this.pixelSize;
+        sy /= this.pixelSize;
+        sw /= this.pixelSize;
+        sh /= this.pixelSize;
+        let tx = Math.floor(sx / TILE_SIZE);
+        let ty = Math.floor(sy / TILE_SIZE);
+        sx = sx - (tx * TILE_SIZE);
+        sy = sy - (ty * TILE_SIZE);
+
+        let tile = this._getTile(tx, ty);
+        for (let x = sx; x < sx + sw; x++) {
+            for (let y = sy; y < sy + sh; y++) {
+                tile.write(x, y, 0.0);
+            }
+        }
+    }
+
+    drawSegmentToContext(context, sx, sy, sw, sh, dx, dy, dw, dh) {
+        context.imageSmoothingEnabled = false;
+
+        sx /= this.pixelSize;
+        sy /= this.pixelSize;
+        sw /= this.pixelSize;
+        sh /= this.pixelSize;
+        let tx = Math.floor(sx / TILE_SIZE);
+        let ty = Math.floor(sy / TILE_SIZE);
+        sx = sx - (tx * TILE_SIZE);
+        sy = sy - (ty * TILE_SIZE);
+
+        let tile = this._getTile(tx, ty);
+        let buffer = tile.getImageBuffer();
+        dataStorageContext.putImageData(buffer, 0, 0);
+        context.drawImage(
+            dataStorageCanvas,
+            sx, sy, sw, sh,
+            dx, dy, dw, dh,
+        );
+    }
+
     drawToContext(context, x1, y1, x2, y2) {
         context.imageSmoothingEnabled = false;
 
@@ -117,6 +157,7 @@ export default class TiledDataLayer {
         let screenYPerTile = Math.floor(screenYPerPixel * TILE_SIZE);
         let originTileScreenX = Math.floor((tx1 * TILE_SIZE - x1) * screenXPerPixel);
         let originTileScreenY = Math.floor((ty1 * TILE_SIZE - y1) * screenYPerPixel);
+
         for (let tx = tx1; tx <= tx2; tx++) {
             for (let ty = ty1; ty <= ty2; ty++) {
                 let tile = this._getTile(tx, ty);

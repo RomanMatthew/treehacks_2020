@@ -3,12 +3,13 @@ import styles from './PrimaryCanvas.module.css';
 import worldData from '../data/worldData.js';
 import tools from '../tools/tools.js';
 
+// Occasionally redraw the canvas to show any progress made by async workers.
+const OCCASIONAL_REFRESH_INTERVAL = 200;
+
 class PrimaryCanvas extends React.Component {
     constructor(props) {
         super(props);
         this.canvasRef = React.createRef();
-        this.treeGreen = '#80A040';
-        this.newTreeGreen = '#A0FF40';
 
         this.cameraX = 0;
         this.cameraY = 0;
@@ -16,6 +17,8 @@ class PrimaryCanvas extends React.Component {
         this.oldMouseX = 0;
         this.oldMouseY = 0;
         this.mouseDown = false;
+
+        this.refreshTimeout = setTimeout(() => this.drawCanvas(), OCCASIONAL_REFRESH_INTERVAL);
     }
 
     _getActiveTool() {
@@ -122,72 +125,22 @@ class PrimaryCanvas extends React.Component {
         c.clearRect(0, 0, c.canvas.width, c.canvas.height);
     }
 
-    drawTree(tree) {
-        let x = tree.x;
-        let y = tree.y;
-        let radius = tree.r;
-
-        let c = this.context;
-        if (tree.new) {
-            c.strokeStyle = this.newTreeGreen;
-        } else {
-            c.strokeStyle = this.treeGreen;
-        }
-        c.lineWidth = 2;
-        c.fillStyle = c.strokeStyle;
-
-        if (this.transformLength(radius) > 5.0) {
-            c.beginPath();
-            c.ellipse(
-                this.transformX(x),
-                this.transformY(y),
-                this.transformLength(radius),
-                this.transformLength(radius),
-                0.0,
-                0.0,
-                Math.PI * 2.0,
-            );
-            c.stroke();
-            c.beginPath();
-            c.ellipse(
-                this.transformX(x),
-                this.transformY(y),
-                3.0,
-                3.0,
-                0.0,
-                0.0,
-                Math.PI * 2.0,
-            );
-            c.fill();
-        } else {
-            c.beginPath();
-            c.ellipse(
-                this.transformX(x),
-                this.transformY(y),
-                this.transformLength(radius),
-                this.transformLength(radius),
-                0.0,
-                0.0,
-                Math.PI * 2.0,
-            );
-            c.fill();
-        }
-    }
-
     drawCanvas() {
+        clearTimeout(this.refreshTimeout);
+        this.refreshTimeout = undefined;
         this.context = this.canvasRef.current.getContext('2d');
         this.clearCanvas();
+        let x1 = this.inverseTransformX(0);
+        let y1 = this.inverseTransformY(0);
+        let x2 = this.inverseTransformX(this.context.canvas.width);
+        let y2 = this.inverseTransformY(this.context.canvas.height);
 
         this.context.globalAlpha = 0.7;
-        let x1 = -this.context.canvas.width / 2 / this.zoomLevel + this.cameraX;
-        let y1 = -this.context.canvas.height / 2 / this.zoomLevel + this.cameraY;
-        let x2 = this.context.canvas.width / 2 / this.zoomLevel + this.cameraX;
-        let y2 = this.context.canvas.height / 2 / this.zoomLevel + this.cameraY;
         worldData.drawTiledDataToContext(this.context, x1, y1, x2, y2);
-
         this.context.globalAlpha = 1.0;
-        for (let tree of worldData.trees) {
-            this.drawTree(tree);
+        worldData.trees.drawToContext(this.context, x1, y1, x2, y2);
+        if (!this.refreshTimeout) {
+            this.refreshTimeout = setTimeout(() => this.drawCanvas(), OCCASIONAL_REFRESH_INTERVAL);
         }
     }
 

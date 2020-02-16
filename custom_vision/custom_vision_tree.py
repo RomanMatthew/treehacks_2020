@@ -5,7 +5,7 @@ def custom_vision_tree(image_url = "test3.jpg"):
 	prediction_key = "76809942034442f885008ba934ce7d46"
 	ENDPOINT = "https://westus2.api.cognitive.microsoft.com"
 	predictor = CustomVisionPredictionClient(prediction_key, endpoint=ENDPOINT)
-	publish_iteration_name = "Iteration1"
+	publish_iteration_name = "Iteration3"
 	projectid = "9de0692a-7292-4998-a7e4-a14e053ce677"
 
 	with open(image_url, "rb") as image_contents:

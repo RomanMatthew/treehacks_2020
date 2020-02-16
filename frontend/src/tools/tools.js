@@ -18,6 +18,7 @@ const panTool = {
         return true;
     },
     renderOptions: () => null,
+    defaultOptions: {},
 };
 
 const infoTool = {
@@ -47,7 +48,8 @@ const infoTool = {
             max={100.0}
             valueLabelDisplay="auto"
         />
-    </div>)
+    </div>),
+    defaultOptions: {},
 };
 
 function makeSoftRadialBrush(brushRadius, brushStrength, brushValue) {
@@ -70,22 +72,58 @@ const densityTool = {
         + 'the value set with the tree info tool.',
     onClick: (ctx, x, y) => {
         brushDragDelta = 0;
-        let brush = makeSoftRadialBrush(200, 1.0, 1.0);
-        ctx.worldData.densityModifier.executeBrush(x, y, 200, brush);
+        let brush = makeSoftRadialBrush(ctx.options.radius, 1.0, 1.0);
+        ctx.worldData.densityModifier.executeBrush(x, y, ctx.options.radius, brush);
         return true;
     },
     onDrag: (ctx, dx, dy, nx, ny) => {
         brushDragDelta += Math.sqrt(dx * dx + dy * dy);
-        if (brushDragDelta > 50.0) {
+        if (brushDragDelta > ctx.options.radius  / 4.0) {
             brushDragDelta = 0.0;
-            let brush = makeSoftRadialBrush(200, 1.0, 1.0);
-            ctx.worldData.densityModifier.executeBrush(nx, ny, 200, brush);
+            let brush = makeSoftRadialBrush(ctx.options.radius, 1.0, 1.0);
+            ctx.worldData.densityModifier.executeBrush(nx, ny, ctx.options.radius, brush);
             return true;
         }
     },
     onScroll: () => null,
-    renderOptions: () => null,
+    renderOptions: (options, onChangeOptions) => (<div>
+        <div>Brush Radius (ft)</div>
+        <Slider 
+            value={options.radius}
+            onChange={(_, value) => {
+                options.radius = value;
+                onChangeOptions();
+            }}
+            step={100}
+            min={100}
+            max={5000}
+            valueLabelDisplay="auto"
+        />
+        <div>Default Density (%)</div>
+        <Slider 
+            defaultValue={100.0}
+            step={1.0}
+            min={1.0}
+            max={100.0}
+            valueLabelDisplay="auto"
+        />
+    </div>),
+    defaultOptions: {
+        radius: 600.0,
+        strength: 100.0,
+        value: 100.0,
+    }
 };
 
-export default [panTool, infoTool, densityTool];
+let tools = [panTool, infoTool, densityTool];
+export default tools;
+
+export let defaultToolset = {
+    active: tools[0].name,
+    options: {},
+};
+for (let tool of tools) {
+    defaultToolset.options[tool.name] = tool.defaultOptions;
+}
+
 

@@ -98,6 +98,8 @@ export default class TiledDataLayer {
     }
 
     drawToContext(context, x1, y1, x2, y2) {
+        context.imageSmoothingEnabled = false;
+
         x1 /= this.pixelSize;
         y1 /= this.pixelSize;
         x2 /= this.pixelSize;

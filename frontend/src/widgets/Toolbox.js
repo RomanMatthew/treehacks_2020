@@ -18,6 +18,8 @@ class Toolbox extends React.Component {
             />
         ));
         let activeTool = tools.find(tool => tool.name === this.props.toolset.active);
+        let activeOptions = this.props.toolset.options[activeTool.name];
+        let onChangeOptions = () => this.props.onToolsetChange(this.props.toolset);
         return (
             <div className={styles.root}>
                 <div className={styles.toolSelection}>
@@ -30,7 +32,7 @@ class Toolbox extends React.Component {
                     {activeTool.description}
                 </div>
                 <div className={styles.toolOptions}>
-                    {activeTool.renderOptions()}
+                    {activeTool.renderOptions(activeOptions, onChangeOptions)}
                 </div>
             </div>
         );

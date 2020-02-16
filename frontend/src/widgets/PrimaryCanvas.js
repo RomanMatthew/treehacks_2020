@@ -28,6 +28,7 @@ class PrimaryCanvas extends React.Component {
             afterToolsetChange: () => this.props.onToolsetChange(this.props.toolset),
             dataview: this,
             worldData: worldData,
+            options: this.props.toolset.options[this._getActiveTool().name],
         }
     }
 

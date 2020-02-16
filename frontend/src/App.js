@@ -2,18 +2,14 @@ import React from 'react';
 import './App.css';
 import PrimaryCanvas from './widgets/PrimaryCanvas.js';
 import Toolbox from './widgets/Toolbox.js';
+import { defaultToolset } from './tools/tools.js';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     // Settings for each of the tools as well as identification of the currently
     // active tool.
-    let toolset = {
-      active: 'pan',
-      settings: {
-        pan: {},
-      }
-    };
+    let toolset = defaultToolset;
     this.state = {
       toolset: toolset,
     };

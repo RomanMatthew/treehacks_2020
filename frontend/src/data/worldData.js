@@ -105,13 +105,14 @@ class WorldData {
         const treeGreen = [128, 160, 64];
         const newTreeGreen = [64, 255, 200];
 
+        this.newTreeSize = 4.0;
+        this.newTreeDensity = 0.6;
+
         this.trees = new PointCloudLayer(treeGreen, 128.0);
         let generator = (layer, x, y, w, h) => {
-            for (let i = 0; i < 50; i++) {
-                layer.addPoint(x + w * Math.random(), y + h * Math.random(), Math.random() * 20.0);
-            }
+            this.generateNewTrees(layer, x, y, w, h);
         };
-        this.procTest = new ProceduralPointCloudLayer(newTreeGreen, 128.0, generator);
+        this.newTrees = new ProceduralPointCloudLayer(newTreeGreen, 128.0, generator);
         this.densityModifier = new TiledDataLayer(64.0, value => {
             if (value > 0.0) {
                 return [0, 1, 1, value];
@@ -122,24 +123,47 @@ class WorldData {
         this.generateDummyData();
     }
 
+    generateNewTrees(layer, x, y, w, h) {
+        for (let i = 0; i < 350; i++) {
+            let px = x + w * Math.random();
+            let py = y + h * Math.random();
+            let densityMod = this.densityModifier.read(px, py);
+            let existingDensity = this.trees.approximateDensity(px, py, 200.0);
+            let targetDensity = Math.max(Math.min(densityMod + this.newTreeDensity, 1.0), 0.0) * 0.6;
+            let probability = (1.0 - existingDensity / targetDensity) * (targetDensity / 0.6);
+            let r = this.newTreeSize * (Math.random() * 0.5 + 0.8);
+            if (
+                Math.random() < probability 
+                && !layer.checkForCollision(px, py, r) 
+                && !this.trees.checkForCollision(px, py, r)
+            ) {
+                layer.addPoint(px, py, r);
+            }
+        }
+    }
+
     generateDummyData() {
         let simplex = new SimplexNoise();
-        let totalTrees = 0;
-        for (let x = 0; x < 20000; x += 20) {
-            for (let y = 0; y < 20000; y += 20) {
+        for (let x = 0; x < 20000; x += 13) {
+            for (let y = 0; y < 20000; y += 13) {
                 if (Math.random() > simplex.noise(x / 10000.0, y / 10000.0) * 0.7 + 0.2) continue;
                 let xx = x + Math.random() * 15.0;
                 let yy = y + Math.random() * 15.0;
-                let r = Math.random() * 10.0 + 3.0;
+                let r;
+                if (Math.random() < 0.2) {
+                    r = Math.random() * 5.0 + 5.0;
+                } else {
+                    r = Math.random() * 3.0 + 3.0;
+                }
+                if (this.trees.checkForCollision(xx, yy, r)) continue;
                 this.trees.addPoint(xx, yy, r);
-                totalTrees += 1;
             }
         }
     }
 
     drawTiledDataToContext(context, x1, y1, x2, y2)  {
         this.densityModifier.drawToContext(context, x1, y1, x2, y2);
-        this.procTest.drawToContext(context, x1, y1, x2, y2);
+        this.newTrees.drawToContext(context, x1, y1, x2, y2);
     }
 }
 

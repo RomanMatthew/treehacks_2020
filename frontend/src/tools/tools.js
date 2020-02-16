@@ -1,5 +1,6 @@
 import React from 'react';
 import Slider from '@material-ui/core/Slider/Slider.js';
+import worldData from '../data/worldData.js';
 
 const panTool = {
     name: 'pan',
@@ -31,10 +32,15 @@ const infoTool = {
     onClick: () => null,
     onDrag: () => null,
     onScroll: () => null,
-    renderOptions: () => (<div>
+    renderOptions: (_, onChangeOptions) => (<div>
         <div>Max Canopy Diameter (ft)</div>
         <Slider 
-            defaultValue={10.0}
+            defaultValue={worldData.newTreeSize * 2}
+            onChange={(_, value) => {
+                worldData.newTreeSize = value / 2.0;
+                worldData.newTrees.markEverythingDirty();
+                onChangeOptions();
+            }}
             step={0.1}
             min={1.0}
             max={30.0}
@@ -42,7 +48,12 @@ const infoTool = {
         />
         <div>Default Density (%)</div>
         <Slider 
-            defaultValue={100.0}
+            defaultValue={worldData.newTreeDensity * 100}
+            onChange={(_, value) => {
+                worldData.newTreeDensity = value / 100.0;
+                worldData.newTrees.markEverythingDirty();
+                onChangeOptions();
+            }}
             step={1.0}
             min={1.0}
             max={100.0}
@@ -80,6 +91,7 @@ const densityTool = {
         brushDragDelta = 0;
         let brush = makeBrush(ctx.options);
         ctx.worldData.densityModifier.executeBrush(x, y, ctx.options.radius, brush);
+        ctx.worldData.newTrees.markAreaDirty(x, y, ctx.options.radius);
         return true;
     },
     onDrag: (ctx, dx, dy, nx, ny) => {
@@ -88,6 +100,7 @@ const densityTool = {
             brushDragDelta = 0.0;
             let brush = makeBrush(ctx.options);
             ctx.worldData.densityModifier.executeBrush(nx, ny, ctx.options.radius, brush);
+            ctx.worldData.newTrees.markAreaDirty(nx, ny, ctx.options.radius);
             return true;
         }
     },

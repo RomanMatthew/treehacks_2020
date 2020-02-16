@@ -2,18 +2,12 @@ import PointCloudLayer from './PointCloudLayer.js';
 
 const GENERATE_QUEUE_MAX_LENGTH = 256;
 
-async function asyncTimeout(ms) {
-    await new Promise((resolve, _) => {
-        setTimeout(resolve, ms);
-    });
-}
-
 export default class ProceduralPointCloudLayer extends PointCloudLayer {
     // tileGenerator: (layer, x, y, w, h) => void
     constructor(color, tileSize, tileGenerator) {
         super(color, tileSize);
-        this.tileSize *= 4;
-        this.mipmapResolutionDivisor *= 4;
+        this.tileSize *= 2;
+        this.mipmapResolutionDivisor *= 2;
         this.tileVersionHashes = {};
         this.versionHash = 1;
         this.tileGenerator = tileGenerator;
@@ -26,6 +20,7 @@ export default class ProceduralPointCloudLayer extends PointCloudLayer {
         for (let limit = 0; limit < GENERATE_QUEUE_MAX_LENGTH / 4; limit++) {
             if (this.generateQueue.length > 0) {
                 let nextItem = this.generateQueue.pop();
+                if (this._getTileVersion(nextItem[0], nextItem[1]) === this.versionHash) continue;
                 this._generateTile(nextItem[0], nextItem[1]);
             } else {
                 // If we run out of work, wait longer to start back up next time.
@@ -96,6 +91,17 @@ export default class ProceduralPointCloudLayer extends PointCloudLayer {
     // fast to do, don't hesitate to do it.)
     markEverythingDirty() {
         this.versionHash++;
+    }
+
+    markAreaDirty(cx, cy, r) {
+        cx = Math.floor(cx / this.tileSize);
+        cy = Math.floor(cy / this.tileSize);
+        let tr = Math.ceil(r / this.tileSize) + 1;
+        for (let dx = -tr; dx <= tr; dx++) {
+            for (let dy = -tr; dy <= tr; dy++) {
+                this._clearTile(cx + dx, cy + dy);
+            }
+        }
     }
 
     drawToContext(context, x1, y1, x2, y2) {

@@ -87,6 +87,38 @@ export default class PointCloudLayer {
         return coveredArea / areaOfCircle(r);
     }
 
+    // Does a very rough (and fast) density approximation based on the mipmap.
+    approximateDensity(x, y, r) {
+        let pixelSize = this.tileSize / this.mipmapResolutionDivisor;
+        let pr = Math.floor(r / pixelSize);
+        let cpx = Math.floor(x / pixelSize);
+        let cpy = Math.floor(y / pixelSize);
+        let sum = 0.0;
+        for (let dx = -pr; dx <= pr; dx++) {
+            for (let dy = -pr; dy <= pr; dy++) {
+                sum += this.mipmap.read(
+                    (cpx + dx) * this.mipmap.pixelSize, 
+                    (cpy + dy) * this.mipmap.pixelSize, 
+                );
+            }
+        }
+        let edgeLen = 2 * pr + 1;
+        sum /= edgeLen * edgeLen;
+        return sum;
+    }
+
+    checkForCollision(x, y, r) {
+        for (let point of this._collectPointsAround(x, y, r)) {
+            let dx = (point.x - x);
+            let dy = (point.y - y);
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < r + point.r) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     drawPoint(c, x, y, r) {
         c.strokeStyle = this.color;
         c.lineWidth = 2;

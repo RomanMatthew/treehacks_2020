@@ -117,6 +117,7 @@ export default class TiledDataLayer {
         let screenYPerTile = Math.floor(screenYPerPixel * TILE_SIZE);
         let originTileScreenX = Math.floor((tx1 * TILE_SIZE - x1) * screenXPerPixel);
         let originTileScreenY = Math.floor((ty1 * TILE_SIZE - y1) * screenYPerPixel);
+
         for (let tx = tx1; tx <= tx2; tx++) {
             for (let ty = ty1; ty <= ty2; ty++) {
                 let tile = this._getTile(tx, ty);

@@ -1,9 +1,13 @@
+import PointCloudLayer from './PointCloudLayer';
 import TiledDataLayer from './TiledDataLayer.js';
 window.TiledDataLayer = TiledDataLayer;
 
 class WorldData {
     constructor() {
-        this.trees = [];
+        const treeGreen = '#80A040';
+        const newTreeGreen = '#A0FF40';
+
+        this.trees = new PointCloudLayer(treeGreen, 512.0);
         this.densityModifier = new TiledDataLayer(64.0, value => {
             if (value > 0.0) {
                 return [0, 1, 1, value];
@@ -15,17 +19,13 @@ class WorldData {
     }
 
     generateDummyData() {
-        for (let x = 0; x < 1000; x += 20) {
-            for (let y = 0; y < 1000; y += 20) {
+        for (let x = 0; x < 10000; x += 20) {
+            for (let y = 0; y < 10000; y += 20) {
                 if (Math.random() < 0.5) continue;
                 let xx = x + Math.random() * 5.0;
                 let yy = y + Math.random() * 5.0;
                 let r = Math.random() * 10.0 + 3.0;
-                this.trees.push({
-                    x: xx,
-                    y: yy,
-                    r: r,
-                });
+                this.trees.addPoint(xx, yy, r);
             }
         }
     }

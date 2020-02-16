@@ -97,7 +97,7 @@ export default class PointCloudLayer {
             c.ellipse(x, y, r, r, 0, 0, Math.PI * 2.0);
             c.stroke();
             c.beginPath();
-            c.ellipse(x, y, 4, 4, 0, 0, Math.PI * 2.0);
+            c.ellipse(x, y, 3, 3, 0, 0, Math.PI * 2.0);
             c.fill();
         } else if (r > 4.0) {
             c.beginPath();

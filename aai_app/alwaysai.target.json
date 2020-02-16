@@ -1,0 +1,6 @@
+{
+  "targetProtocol": "ssh+docker:",
+  "targetHostname": "alwaysai@alwaysai200.local",
+  "targetPath": "alwaysai/aai_app",
+  "dockerImageId": "sha256:36ea6995b588acb8ceca7ebdfbb70b6bce52aa31360d74b8b37616336189273d"
+}

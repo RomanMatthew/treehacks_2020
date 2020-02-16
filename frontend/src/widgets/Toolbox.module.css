@@ -1,0 +1,36 @@
+.root {
+    border-right: 1px solid var(--border);
+}
+
+.toolSelection {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    row-gap: 6px;
+    column-gap: 6px;
+    padding: 6px;
+    border-bottom: 1px solid var(--border);
+}
+
+.toolName {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0.25rem;
+    padding-left: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+}
+
+.toolDescription {
+    opacity: 0.4;
+    padding: 0.25rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+
+.toolOptions {
+    padding: 0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}

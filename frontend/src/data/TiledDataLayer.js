@@ -85,13 +85,11 @@ export default class TiledDataLayer {
 
     // brushFunc: (dx, dy, oldValue) => newValue
     executeBrush(x, y, radius, brushFunc) {
-        x /= this.pixelSize;
-        y /= this.pixelSize;
-        radius /= this.pixelSize;
+        radius = Math.ceil(radius / this.pixelSize) * this.pixelSize;
         let cx = x;
         let cy = y;
-        for (let x = cx - radius; x <= cx + radius; x++) {
-            for (let y = cy - radius; y <= cy + radius; y++) {
+        for (let x = cx - radius; x <= cx + radius; x += this.pixelSize) {
+            for (let y = cy - radius; y <= cy + radius; y += this.pixelSize) {
                 let oldValue = this.read(x, y);
                 let newValue = brushFunc(x - cx, y - cy, oldValue);
                 this.write(x, y, newValue);

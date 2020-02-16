@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './PrimaryCanvas.module.css';
 import worldData from '../data/worldData.js';
+import tools from '../tools/tools.js';
 
 class PrimaryCanvas extends React.Component {
     constructor(props) {
@@ -17,6 +18,19 @@ class PrimaryCanvas extends React.Component {
         this.mouseDown = false;
     }
 
+    _getActiveTool() {
+        return tools.find(t => t.name === this.props.toolset.active);
+    }
+
+    _buildEventContext() {
+        return {
+            toolset: this.props.toolset,
+            afterToolsetChange: () => this.props.onToolsetChange(this.props.toolset),
+            dataview: this,
+            worldData: worldData,
+        }
+    }
+
     componentDidMount() {
         let canvas = this.canvasRef.current;
         canvas.width = canvas.clientWidth;
@@ -29,24 +43,42 @@ class PrimaryCanvas extends React.Component {
             this.drawCanvas();
         };
         this.clickHandler = event => {
-            this.oldMouseX = event.clientX;
-            this.oldMouseY = event.clientY;
+            let bbox = this.canvasRef.current.getBoundingClientRect();
+            this.oldMouseX = event.clientX - bbox.left
+            this.oldMouseY = event.clientY - bbox.top;
             this.mouseDown = true;
-            this.onClick(event.clientX, event.clientY);
+            let redraw = this._getActiveTool().onClick(
+                this._buildEventContext(),
+                this.inverseTransformX(this.oldMouseX),
+                this.inverseTransformY(this.oldMouseY),
+            );
+            if (redraw) this.drawCanvas();
         }
         this.dragHandler = event => {
             if (!this.mouseDown) return;
-            let deltaX = event.clientX - this.oldMouseX;
-            let deltaY = event.clientY - this.oldMouseY;
-            this.oldMouseX = event.clientX;
-            this.oldMouseY = event.clientY;
-            this.onDrag(deltaX, deltaY, event.clientX, event.clientY);
+            let bbox = this.canvasRef.current.getBoundingClientRect();
+            let deltaX = event.clientX - bbox.left - this.oldMouseX;
+            let deltaY = event.clientY - bbox.top - this.oldMouseY;
+            this.oldMouseX += deltaX;
+            this.oldMouseY += deltaY;
+            let redraw = this._getActiveTool().onDrag(
+                this._buildEventContext(),
+                deltaX / this.zoomLevel,
+                deltaY / this.zoomLevel,
+                this.inverseTransformX(this.oldMouseX),
+                this.inverseTransformY(this.oldMouseY),
+            );
+            if (redraw) this.drawCanvas();
         };
         this.mouseUpHandler = () => {
             this.mouseDown = false;
         };
         this.wheelHandler = event => {
-            this.onScroll(event.deltaY);
+            let redraw = this._getActiveTool().onScroll(
+                this._buildEventContext(),
+                event.deltaY
+            );
+            if (redraw) this.drawCanvas();
         };
         window.addEventListener('resize', this.resizeHandler);
         canvas.addEventListener('mousedown', this.clickHandler);
@@ -54,41 +86,6 @@ class PrimaryCanvas extends React.Component {
         canvas.addEventListener('mouseup', this.mouseUpHandler);
         canvas.addEventListener('mouseleave', this.mouseUpHandler);
         canvas.addEventListener('wheel', this.wheelHandler);
-    }
-
-    onClick(x, y) {
-        let tool = this.props.toolset.active;
-        if (tool === 'density') {
-            console.log(
-
-                this.inverseTransformX(x), 
-                this.inverseTransformY(y),
-            );
-            worldData.densityModifier.executeBrush(
-                this.inverseTransformX(x), 
-                this.inverseTransformY(y),
-                50,
-                (dx, dy, oldValue) => oldValue + 0.1
-            );
-            this.drawCanvas();
-        }
-    }
-
-    onDrag(dx, dy, nx, ny) {
-        let tool = this.props.toolset.active;
-        if (tool === 'pan') {
-            this.cameraX -= dx / this.zoomLevel;
-            this.cameraY -= dy / this.zoomLevel;
-            this.drawCanvas();
-        }
-    }
-
-    onScroll(ds) {
-        let tool = this.props.toolset.active;
-        if (tool === 'pan') {
-            this.zoomLevel *= Math.pow(2.0, ds * -0.05);
-            this.drawCanvas();
-        }
     }
 
     componentWillUnmount() {

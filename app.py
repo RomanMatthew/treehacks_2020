@@ -37,7 +37,7 @@ def camera_loop():
     pygame.camera.init()
 
     print('Loading webcam...')
-    camera = pygame.camera.Camera("/dev/video2", (640, 480))
+    camera = pygame.camera.Camera("/dev/video3", (640, 480))
     # Allow Webcam to warm up
     camera.start()
 

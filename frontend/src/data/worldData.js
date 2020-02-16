@@ -120,7 +120,7 @@ class WorldData {
                 return [1, 0, 0, -value];
             }
         });
-        this.generateDummyData();
+        window.genDemo = this.generateDummyData.bind(this);
     }
 
     generateNewTrees(layer, x, y, w, h) {
@@ -146,8 +146,9 @@ class WorldData {
 
     generateDummyData() {
         let simplex = new SimplexNoise();
-        for (let x = 0; x < 10000; x += 13) {
-            for (let y = 0; y < 10000; y += 13) {
+        this.newTrees.markEverythingDirty();
+        for (let x = 0; x < 50000; x += 13) {
+            for (let y = 0; y < 50000; y += 13) {
                 if (Math.random() > simplex.noise(x / 10000.0, y / 10000.0) * 0.7 + 0.2) continue;
                 let xx = x + Math.random() * 15.0;
                 let yy = y + Math.random() * 15.0;

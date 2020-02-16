@@ -4,25 +4,31 @@ import time
 import custom_vision as vis
 import pygame
 import pygame.camera
-import websocket
+import requests
 import _thread as thread
+import websocket
 
+SERVER_URL = 'localhost:8000'
 take_picture = False
-
 
 def on_ws_message(ws, message):
     global take_picture
     if message == 'take_picture':
         take_picture = True
 
-
 def connect_ws():
     global take_picture
-    uri = 'ws://localhost:8000/command-stream'
+    print('Connecting web socket...')
+    uri = 'ws://' + SERVER_URL + '/command-stream'
     client = websocket.WebSocketApp(uri, on_message=on_ws_message)
+    print('Web socket connected!')
     def run():
         client.run_forever()
     thread.start_new_thread(run, ())
+
+def upload_image_data(image_data):
+    uri = 'http://' + SERVER_URL + '/api/image-data'
+    requests.post(uri, json=image_data)
 
 def camera_loop():
     global take_picture
@@ -34,6 +40,7 @@ def camera_loop():
     # Allow Webcam to warm up
     camera.start()
 
+    print('Webcam loaded!')
     while True:
         frame = camera.get_image()
 
@@ -43,6 +50,7 @@ def camera_loop():
             pygame.image.save(frame, 'webcam.jpg')
             trees = vis.custom_vision_tree('webcam.jpg')
             print(trees)
+            upload_image_data(trees)
             take_picture = False
 
             """

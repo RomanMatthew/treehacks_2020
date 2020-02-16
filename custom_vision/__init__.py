@@ -1,5 +1,7 @@
 from azure.cognitiveservices.vision.customvision.prediction import CustomVisionPredictionClient
 
+MINIMUM_CONFIDENCE = 0.05 # 5 percent confidence.
+
 # Image dimensions should be in feet.
 def custom_vision_tree(image_url="test_images/test1.jpg", imageWidth=80, imageHeight=50):
     # Now there is a trained endpoint that can be used to make a prediction
@@ -15,12 +17,12 @@ def custom_vision_tree(image_url="test_images/test1.jpg", imageWidth=80, imageHe
 
     packed_predictions = []
     for prediction in results.predictions:
-        print(prediction.probability)
+        if prediction.probability < MINIMUM_CONFIDENCE:
+            continue
         bbox = prediction.bounding_box
         x = bbox.left + bbox.width / 2
         y = bbox.top + bbox.height / 2
         diameter = (bbox.width * imageWidth + bbox.height * imageHeight) / 2
         packed_predictions.append((x * imageWidth, y * imageHeight, diameter / 2))
-    print(packed_predictions)
     return packed_predictions
 # custom_vision_tree()

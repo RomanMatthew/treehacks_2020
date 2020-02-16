@@ -9,17 +9,28 @@ numpy.set_printoptions(threshold=sys.maxsize)
 
 TREE_RAY = numpy.zeros((100, 100))  # Create 100 * 100 2D array 
 PREDICTION_CONFIDENCE = 50
+
+MAX_WIDTH = 0
+MAX_HEIGHT = 0
 # Fill 2D array with existing trees 
 def create_grid(results):
     for prediction in results.predictions:
         if (prediction.probability * 100 >= PREDICTION_CONFIDENCE):
+            
             top = int(prediction.bounding_box.top * 100)
             left = int(prediction.bounding_box.left * 100)
             height = int(prediction.bounding_box.height* 100) 
             width = int(prediction.bounding_box.width * 100)
+
+            if (height > MAX_HEIGHT):
+                MAX_HEIGHT = height
+            if (width > MAX_WIDTH):
+                MAX_WIDTH = width
+
             for r in range(top, height + top):
                 for c in range(left, width + left):
                     TREE_RAY[r][c] = 1
+
 
 # Detect if a tree already exists at an index
 def collision(top, left, width, height):
@@ -53,4 +64,4 @@ def plant_trees(results, max_width, max_height):
     create_grid(results)
     new_trees = loop_through(max_width, max_height)
 
-# plant_trees(custom_vision_tree(), 15, 15)
+# plant_trees(custom_vision_tree(), MAX_WIDTH, MAX_HEIGHT)

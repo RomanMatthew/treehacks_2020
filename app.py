@@ -13,6 +13,7 @@ take_picture = False
 
 def on_ws_message(ws, message):
     global take_picture
+    print('Got message!')
     if message == 'take_picture':
         take_picture = True
 
@@ -49,7 +50,6 @@ def camera_loop():
             print('Took picture!')
             pygame.image.save(frame, 'webcam.jpg')
             trees = vis.custom_vision_tree('webcam.jpg')
-            print(trees)
             upload_image_data(trees)
             take_picture = False
 

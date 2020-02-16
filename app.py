@@ -31,6 +31,10 @@ def upload_image_data(image_data):
     uri = 'http://' + SERVER_URL + '/api/image-data'
     requests.post(uri, json=image_data)
 
+def upload_image(img_path):
+    uri = 'http://' + SERVER_URL + '/api/image'
+    requests.post(uri, files={'image': open(img_path, 'rb')})
+
 def camera_loop():
     global take_picture
 
@@ -50,6 +54,7 @@ def camera_loop():
             print('Took picture!')
             pygame.image.save(frame, 'webcam.jpg')
             trees = vis.custom_vision_tree('webcam.jpg')
+            upload_image('webcam.jpg')
             upload_image_data(trees)
             take_picture = False
 

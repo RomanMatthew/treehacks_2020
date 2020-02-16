@@ -1,6 +1,7 @@
 import PointCloudLayer from './PointCloudLayer';
 import TiledDataLayer from './TiledDataLayer.js';
 import ProceduralPointCloudLayer from './ProceduralPointCloudLayer';
+import ImageLayer from './ImageLayer';
 window.TiledDataLayer = TiledDataLayer;
 
 // Ported from Stefan Gustavson's java implementation
@@ -104,6 +105,8 @@ class WorldData {
     constructor() {
         const treeGreen = [128, 160, 64];
         const newTreeGreen = [64, 255, 200];
+
+        this.sourceImages = new ImageLayer();
 
         this.newTreeSize = 4.0;
         this.newTreeDensity = 0.6;

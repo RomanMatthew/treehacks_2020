@@ -1,6 +1,6 @@
 from azure.cognitiveservices.vision.customvision.prediction import CustomVisionPredictionClient
 
-def custom_vision_tree(image_url = "test_images/test3.jpg"):
+def custom_vision_tree(image_url = "test_images/test7.jpg"):
 	# Now there is a trained endpoint that can be used to make a prediction
 	prediction_key = "76809942034442f885008ba934ce7d46"
 	ENDPOINT = "https://westus2.api.cognitive.microsoft.com"

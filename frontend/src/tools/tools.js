@@ -167,6 +167,7 @@ const pictureTool = {
             ctx.worldData.trees.addPoint(tree[0] + x, tree[1] + y, tree[2]);
         }
         ctx.worldData.newTrees.markEverythingDirty();
+        ctx.worldData.sourceImages.addImage('/api/image', x, y, 120, 90);
         return true;
     },
     onDrag: () => null,
@@ -184,6 +185,13 @@ const visibilityTool = {
     onDrag: () => null,
     onScroll: () => null,
     renderOptions: (options, onChangeOptions) => (<div>
+        <FormControlLabel
+            control={<Switch checked={options.drawSourceImages} onChange={(_, value) => {
+                options.drawSourceImages = value;
+                onChangeOptions();
+            }} />}
+            label="Source Images"
+        />
         <FormControlLabel
             control={<Switch checked={options.drawTrees} onChange={(_, value) => {
                 options.drawTrees = value;
@@ -207,6 +215,7 @@ const visibilityTool = {
         />
     </div>),
     defaultOptions: {
+        drawSourceImages: true,
         drawTrees: true,
         drawNewTrees: true,
         drawDensityMod: true,

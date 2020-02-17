@@ -137,6 +137,7 @@ class PrimaryCanvas extends React.Component {
 
         let vis = this.props.toolset.options.visibility;
         this.context.globalAlpha = 0.7;
+        if (vis.drawSourceImages) worldData.sourceImages.drawToContext(this.context, x1, y1, x2, y2);
         if (vis.drawDensityMod) worldData.densityModifier.drawToContext(this.context, x1, y1, x2, y2);
         this.context.globalAlpha = 1.0;
         if (vis.drawNewTrees) worldData.newTrees.drawToContext(this.context, x1, y1, x2, y2);
